@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>🧪 Bạn Của 10 - Kumon Math</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F3E5F5; --primary: #9C27B0; --primary-dark: #7B1FA2;
+    --card: #FFFFFF; --text: #263238; --text-muted: #78909C;
+    --accent: #E91E63;
+  }
+  
+  *, *::before, *::after {
+    box-sizing: border-box; margin: 0; padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none; -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  body {
+    background: var(--bg); font-family: 'Nunito', sans-serif;
+    color: var(--text); height: 100vh;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* --- HEADER --- */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 20px; background: var(--card);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 10;
+  }
+  .btn-back {
+    font-size: 1.1rem; font-weight: 800; color: var(--text-muted);
+    background: #f0f4f8; padding: 8px 16px; border-radius: 20px; border: none;
+  }
+  .progress-bar {
+    flex: 1; height: 10px; background: #E0E0E0; border-radius: 10px;
+    margin: 0 20px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--primary); width: 0%;
+    transition: width 0.4s ease; border-radius: 10px;
+  }
+  .stars { font-size: 1.2rem; font-weight: 900; color: #FF9800; }
+
+  /* --- STAGE --- */
+  .stage {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-around;
+    padding: 20px; width: 100%; max-width: 600px; margin: 0 auto;
+  }
+
+  .formula-box {
+    display: flex; align-items: center; justify-content: center; gap: 15px;
+    background: #fff; padding: 30px; border-radius: 40px;
+    box-shadow: 0 15px 35px rgba(156, 39, 176, 0.1);
+    border: 5px solid #E1BEE7; width: 100%;
+  }
+
+  .num-box {
+    width: 90px; height: 110px; display: flex; align-items: center; justify-content: center;
+    font-size: 4.5rem; font-weight: 900; color: var(--primary-dark);
+    border-radius: 20px;
+  }
+  .num-box.empty {
+    border: 4px dashed #CE93D8; color: #CE93D8; background: #F8F1F9;
+    animation: pulse 2s infinite;
+  }
+  .operator { font-size: 3rem; font-weight: 900; color: var(--accent); }
+
+  /* --- OPTIONS --- */
+  .options-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%;
+  }
+  .option-btn {
+    background: #fff; border-radius: 25px; border: 4px solid #E0E0E0;
+    box-shadow: 0 8px 0 #E0E0E0; aspect-ratio: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 2.5rem; font-weight: 900; color: var(--text);
+    cursor: pointer; transition: all 0.1s;
+  }
+  .option-btn:active { transform: translateY(8px); box-shadow: 0 0 0 #E0E0E0; }
+  
+  .option-btn.correct { border-color: #4CAF50; background: #E8F5E9; color: #2E7D32; animation: bounce 0.5s; }
+  .option-btn.wrong { border-color: #F44336; background: #FFEBEE; color: #C62828; animation: shake 0.4s; }
+  .option-btn.dim { opacity: 0.3; pointer-events: none; }
+
+  /* --- VICTORY --- */
+  .victory {
+    display: none; position: fixed; inset: 0; background: rgba(243, 229, 245, 0.98);
+    flex-direction: column; align-items: center; justify-content: center; z-index: 100;
+  }
+  .victory h1 { font-size: 2.5rem; color: var(--primary-dark); margin-bottom: 20px; }
+  .btn-finish {
+    font-size: 1.4rem; font-weight: 900; background: var(--primary); color: white;
+    padding: 15px 50px; border-radius: 40px; border: none; box-shadow: 0 8px 0 var(--primary-dark);
+  }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+  @media(max-width: 400px) {
+    .num-box { width: 70px; height: 90px; font-size: 3.5rem; }
+    .operator { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="btn-back" onclick="location.href='index.html'">◂ Thoát</button>
+  <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="stars" id="score-txt">0 ⭐</div>
+</div>
+
+<div class="stage">
+  <div style="text-align: center;">
+    <h2 style="color: var(--primary-dark); margin-bottom: 5px;">Số mấy kết bạn với</h2>
+    <p style="color: var(--text-muted); font-weight: 800;">để thành 10 nhỉ?</p>
+  </div>
+
+  <div class="formula-box">
+    <div class="num-box" id="num-given">7</div>
+    <div class="operator">+</div>
+    <div class="num-box empty" id="num-missing">?</div>
+    <div class="operator">=</div>
+    <div class="num-box" style="background: #E1BEE7;">10</div>
+  </div>
+
+  <div class="options-grid" id="options">
+    </div>
+</div>
+
+<div class="victory" id="victory">
+  <div style="font-size: 6rem; margin-bottom: 20px;">🧪✨</div>
+  <h1>Nhà Toán Học Nhí!</h1>
+  <p style="margin-bottom: 30px; font-weight: 700; color: var(--text-muted);">Con đã tìm đủ các cặp bạn của 10 rồi!</p>
+  <button class="btn-finish" onclick="complete()">Tiếp tục thôi! 🚀</button>
+</div>
+
+<script>
+  const TOTAL = 10;
+  let current = 0;
+  let score = 0;
+  let targetNum = 0;
+  let isWaiting = false;
+
+  function init() {
+    current = 0;
+    score = 0;
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    isWaiting = false;
+    document.getElementById('prog-fill').style.width = (current / TOTAL * 100) + '%';
+    document.getElementById('num-missing').textContent = '?';
+    document.getElementById('num-missing').classList.add('empty');
+
+    // 1. Chọn một số ngẫu nhiên từ 1-9
+    const given = Math.floor(Math.random() * 9) + 1;
+    targetNum = 10 - given;
+    document.getElementById('num-given').textContent = given;
+
+    // 2. Tạo danh sách đáp án
+    let opts = [targetNum];
+    while(opts.length < 6) {
+      let r = Math.floor(Math.random() * 10);
+      if(!opts.includes(r)) opts.push(r);
+    }
+    opts.sort(() => Math.random() - 0.5);
+
+    // 3. Render
+    const grid = document.getElementById('options');
+    grid.innerHTML = '';
+    opts.forEach(n => {
+      const btn = document.createElement('div');
+      btn.className = 'option-btn';
+      btn.textContent = n;
+      btn.onclick = () => check(btn, n);
+      grid.appendChild(btn);
+    });
+  }
+
+  function check(btn, val) {
+    if(isWaiting) return;
+
+    if(val === targetNum) {
+      isWaiting = true;
+      score++;
+      document.getElementById('score-txt').textContent = score + ' ⭐';
+      btn.classList.add('correct');
+      document.getElementById('num-missing').textContent = val;
+      document.getElementById('num-missing').classList.remove('empty');
+      
+      // Hiệu ứng pháo hoa nhỏ
+      confetti();
+
+      setTimeout(() => {
+        current++;
+        if(current < TOTAL) loadQuestion();
+        else showVictory();
+      }, 1200);
+    } else {
+      btn.classList.add('wrong');
+      setTimeout(() => btn.classList.remove('wrong'), 500);
+    }
+  }
+
+  function confetti() {
+    for(let i=0; i<15; i++) {
+      const c = document.createElement('div');
+      c.style.cssText = `position:fixed; width:10px; height:10px; background:hsl(${Math.random()*360},70%,60%); 
+        left:50%; top:50%; border-radius:50%; pointer-events:none; z-index:99;`;
+      document.body.appendChild(c);
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 100 + Math.random() * 100;
+      c.animate([
+        { transform: 'translate(0,0) scale(1)', opacity: 1 },
+        { transform: `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px) scale(0)`, opacity: 0 }
+      ], { duration: 1000, easing: 'ease-out' }).onfinish = () => c.remove();
+    }
+  }
+
+  function showVictory() {
+    document.getElementById('victory').style.display = 'flex';
+    localStorage.setItem('kumon_level4_done', 'true');
+  }
+
+  function complete() {
+    window.location.href = 'index.html';
+  }
+
+  init();
+</script>
+</body>
+</html>
