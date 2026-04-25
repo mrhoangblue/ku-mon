@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>1️⃣ Bảng Số Thần Kỳ</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F1F8E9; --primary: #4CAF50; --primary-dark: #388E3C;
+    --card: #FFFFFF; --text: #263238; --text-muted: #78909C;
+    --wrong: #FF5252; --wrong-bg: #FFEBEE;
+    --correct: #4CAF50; --correct-bg: #E8F5E9;
+  }
+  
+  *, *::before, *::after {
+    box-sizing: border-box; margin: 0; padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none; -webkit-user-select: none;
+    touch-action: manipulation; /* Tối ưu chống kẹt nút trên iPad */
+  }
+
+  body {
+    background: var(--bg); font-family: 'Nunito', sans-serif;
+    color: var(--text); min-height: 100vh;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* --- HEADER --- */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 20px; background: var(--card);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  }
+  .btn-back {
+    font-size: 1.2rem; font-weight: 800; color: var(--text-muted);
+    background: #f0f4f8; padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer;
+  }
+  .btn-back:active { transform: scale(0.95); }
+  .progress-bar {
+    flex: 1; height: 10px; background: #E0E0E0; border-radius: 10px;
+    margin: 0 20px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--primary); width: 0%;
+    transition: width 0.4s ease; border-radius: 10px;
+  }
+  .stars { font-size: 1.2rem; font-weight: 900; color: #FF9800; }
+
+  /* --- STAGE --- */
+  .stage {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px; max-width: 600px; margin: 0 auto; width: 100%;
+  }
+
+  /* Khung Câu Hỏi */
+  .question-box {
+    text-align: center; margin-bottom: 40px;
+  }
+  .q-text { font-size: 1.2rem; font-weight: 800; color: var(--text-muted); margin-bottom: 10px; }
+  .q-target {
+    font-size: 5rem; font-weight: 900; color: var(--primary-dark);
+    background: #C8E6C9; display: inline-block; padding: 10px 40px;
+    border-radius: 30px; border: 4px dashed var(--primary);
+    box-shadow: 0 8px 0 #A5D6A7; animation: pulse 2s infinite;
+  }
+
+  /* Grid Chứa 6 Số */
+  .number-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%; max-width: 400px;
+  }
+  
+  .num-card {
+    background: var(--card); border-radius: 24px;
+    border: 4px solid #E0E0E0; box-shadow: 0 8px 0 #E0E0E0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3.5rem; font-weight: 900; color: var(--text);
+    cursor: pointer; aspect-ratio: 1; transition: all 0.1s;
+  }
+  
+  .num-card:active { transform: translateY(8px); box-shadow: 0 0 0 #E0E0E0; }
+
+  /* Trạng thái đúng/sai */
+  .num-card.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--primary-dark); animation: bounce 0.5s; }
+  .num-card.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); animation: shake 0.4s; }
+  .num-card.dimmed { opacity: 0.4; pointer-events: none; }
+
+  /* --- VICTORY SCREEN --- */
+  .victory {
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    position: absolute; inset: 0; background: rgba(241, 248, 233, 0.95); z-index: 100;
+  }
+  .victory h1 { font-size: 2.5rem; color: var(--primary-dark); margin-bottom: 10px; text-align: center; }
+  .victory p { font-size: 1.1rem; color: var(--text-muted); font-weight: 700; margin-bottom: 30px; }
+  .btn-home {
+    font-size: 1.3rem; font-weight: 900; background: var(--primary); color: white;
+    padding: 15px 40px; border-radius: 30px; border: none; cursor: pointer;
+    box-shadow: 0 8px 0 var(--primary-dark);
+  }
+  .btn-home:active { transform: translateY(8px); box-shadow: 0 0 0 var(--primary-dark); }
+
+  /* Animations */
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+  @media(max-width: 380px) {
+    .num-card { font-size: 2.8rem; }
+    .q-target { font-size: 4rem; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <button class="btn-back" onclick="goHome()">◂ Quay lại</button>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+    <div class="stars" id="score-txt">0 ⭐</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="question-box">
+      <div class="q-text">Bé hãy tìm số:</div>
+      <div class="q-target" id="q-target">?</div>
+    </div>
+    
+    <div class="number-grid" id="grid">
+      </div>
+  </div>
+
+  <div class="victory" id="victory">
+    <div style="font-size: 5rem; animation: bounce 1s infinite;">🏆</div>
+    <h1>Trạm 1: Hoàn Thành!</h1>
+    <p>Bé nhận diện mặt số rất giỏi!</p>
+    <button class="btn-home" onclick="completeLevel()">Mở khóa trạm tiếp theo 🚀</button>
+  </div>
+
+<script>
+  // Cấu hình Game
+  const TOTAL_QUESTIONS = 10;
+  let currentQuestion = 0;
+  let score = 0;
+  let isAnimating = false;
+  let currentTarget = 0;
+
+  // Tiện ích xáo trộn mảng
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  // Hàm sinh số ngẫu nhiên trong khoảng
+  function rnd(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function initGame() {
+    currentQuestion = 0; score = 0;
+    document.getElementById('victory').style.display = 'none';
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    isAnimating = false;
+    document.getElementById('prog-fill').style.width = ((currentQuestion / TOTAL_QUESTIONS) * 100) + '%';
+    document.getElementById('score-txt').textContent = score + ' ⭐';
+
+    // Xác định độ khó theo số thứ tự câu hỏi (Micro-steps của Kumon)
+    let min, max;
+    if (currentQuestion < 4) { min = 1; max = 10; }       // Câu 1-4: Số 1-10
+    else if (currentQuestion < 7) { min = 11; max = 20; } // Câu 5-7: Số 11-20
+    else { min = 21; max = 30; }                          // Câu 8-10: Số 21-30
+
+    // Chọn số mục tiêu
+    currentTarget = rnd(min, max);
+    document.getElementById('q-target').textContent = currentTarget;
+
+    // Sinh 5 số sai (không trùng với số mục tiêu)
+    let options = [currentTarget];
+    while (options.length < 6) {
+      let wrongNum = rnd(min, max);
+      // Đôi khi cho số sai nằm ngoài khoảng một chút để bé nhầm lẫn
+      if (Math.random() > 0.7 && max < 30) wrongNum = rnd(min, max + 5); 
+      
+      if (!options.includes(wrongNum)) {
+        options.push(wrongNum);
+      }
+    }
+
+    options = shuffle(options);
+
+    // Render Grid
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    
+    options.forEach(num => {
+      const btn = document.createElement('div');
+      btn.className = 'num-card';
+      btn.textContent = num;
+      // Dùng onclick chuẩn để thân thiện nhất với iPad
+      btn.onclick = () => checkAnswer(btn, num);
+      grid.appendChild(btn);
+    });
+  }
+
+  function checkAnswer(btn, num) {
+    if (isAnimating) return;
+
+    if (num === currentTarget) {
+      isAnimating = true;
+      btn.classList.add('correct');
+      
+      // Làm mờ các ô sai
+      document.querySelectorAll('.num-card').forEach(card => {
+        if (card !== btn) card.classList.add('dimmed');
+      });
+
+      score++;
+      document.getElementById('score-txt').textContent = score + ' ⭐';
+
+      // Sinh pháo hoa đơn giản
+      createConfetti();
+
+      setTimeout(() => {
+        currentQuestion++;
+        if (currentQuestion < TOTAL_QUESTIONS) {
+          loadQuestion();
+        } else {
+          showVictory();
+        }
+      }, 1000);
+
+    } else {
+      // Bé chọn sai
+      isAnimating = true;
+      btn.classList.add('wrong');
+      setTimeout(() => {
+        btn.classList.remove('wrong');
+        isAnimating = false;
+      }, 500);
+    }
+  }
+
+  function createConfetti() {
+    const colors = ['#4CAF50', '#FFC107', '#2196F3', '#FF5252'];
+    for(let i=0; i<20; i++){
+      const cp = document.createElement('div');
+      cp.style.cssText = `
+        position: fixed; width: 10px; height: 10px; 
+        background: ${colors[Math.floor(Math.random()*colors.length)]};
+        left: ${50 + (Math.random() - 0.5) * 40}%; top: 40%;
+        border-radius: 50%; pointer-events: none; z-index: 50;
+        transition: all 1s ease-out;
+      `;
+      document.body.appendChild(cp);
+      
+      // Kích hoạt hiệu ứng bay ra
+      setTimeout(() => {
+        cp.style.transform = `translate(${(Math.random() - 0.5) * 300}px, ${Math.random() * 300}px) scale(0)`;
+        cp.style.opacity = '0';
+      }, 10);
+      
+      setTimeout(() => cp.remove(), 1000);
+    }
+  }
+
+  function showVictory() {
+    document.getElementById('prog-fill').style.width = '100%';
+    document.getElementById('victory').style.display = 'flex';
+    
+    // Đánh dấu hoàn thành Trạm 1 vào bộ nhớ của trình duyệt iPad
+    localStorage.setItem('kumon_level1_done', 'true');
+  }
+
+  function completeLevel() {
+    window.location.href = 'index.html';
+  }
+
+  function goHome() {
+    window.location.href = 'index.html';
+  }
+
+  // Khởi động
+  initGame();
+
+</script>
+</body>
+</html>
