@@ -272,6 +272,15 @@
       if(node4) { node4.classList.remove('node-locked'); node4.classList.add('node-current'); }
     }
   }
+  // Check Trạm 5 (Máy Nhảy) -> Hoàn thành lộ trình
+    if (localStorage.getItem('kumon_level5_done') === 'true') {
+      const node5 = document.getElementById('node5');
+      if(node5) { 
+        node5.classList.remove('node-current'); 
+        node5.classList.add('node-completed'); 
+        // Bé đã phá đảo toàn bộ đảo!
+      }
+    }
 </script>
 
 </body>
