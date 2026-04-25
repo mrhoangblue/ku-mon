@@ -15,7 +15,7 @@
   .header { display: flex; align-items: center; padding: 15px 20px; background: var(--card); box-shadow: 0 4px 10px rgba(0,0,0,0.05); z-index: 10; }
   .btn-back { font-size: 1rem; font-weight: 800; padding: 8px 15px; border-radius: 15px; border: none; cursor: pointer; background: #eee; color: #555; }
   .prog-container { flex: 1; height: 10px; background: #E0E0E0; border-radius: 10px; margin: 0 15px; overflow: hidden; }
-  #prog-bar { height: 100%; background: var(--neon); width: 0%; transition: width 0.3s; }
+  #prog-bar { height: 100%; background: var(--neon); width: 0%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
   #stars-count { font-weight: 900; color: #FF9800; min-width: 50px; text-align: right; }
 
   /* Game Area */
@@ -37,7 +37,6 @@
   .label-plus { font-size: 1.4rem; font-weight: 900; background: #FF5252; padding: 2px 12px; border-radius: 10px; position: absolute; top: -15px; box-shadow: 0 3px 0 #B71C1C; }
   .rocket-icon { font-size: 2.8rem; }
 
-  /* Hiệu ứng số chui ra */
   #out-val { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
   .hidden-num { color: transparent; background: #cfd8dc; border-style: dashed; }
   .revealed-num { color: #263238; background: #fff; border-style: solid; transform: scale(1.1); }
@@ -47,10 +46,10 @@
   .choice-card { 
     background: #fff; border-radius: 15px; border: 3px solid #CFD8DC; 
     box-shadow: 0 5px 0 #CFD8DC; padding: 15px 0; font-size: 1.8rem; 
-    font-weight: 900; cursor: pointer; text-align: center; transition: 0.1s;
+    font-weight: 900; cursor: pointer; text-align: center; transition: transform 0.1s;
   }
   .choice-card:active { transform: translateY(4px); box-shadow: none; }
-  .choice-card.correct { border-color: #00E676; background: #E8F5E9; color: #1B5E20; box-shadow: 0 5px 0 #1B5E20; }
+  .choice-card.correct { border-color: #00E676; background: #E8F5E9; color: #1B5E20; box-shadow: 0 5px 0 #1B5E20; pointer-events: none; }
   .choice-card.wrong { border-color: #FF5252; background: #FFEBEE; animation: shake 0.4s; }
 
   @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
@@ -68,7 +67,7 @@
 <body>
 
 <div class="header">
-  <button class="btn-back" onclick="location.href='index.html'">◂ Thoát</button>
+  <button class="btn-back" onclick="window.location.href='index.html'">◂ Thoát</button>
   <div class="prog-container"><div id="prog-bar"></div></div>
   <div id="stars-count">0 ⭐</div>
 </div>
@@ -97,89 +96,103 @@
   <div style="font-size: 5rem;">🏆</div>
   <h1 style="font-size: 2.5rem; color: #263238;">BÉ GIỎI QUÁ!</h1>
   <p style="font-weight: 700; color: #78909C;">Con đã hoàn thành toàn bộ thử thách!</p>
-  <button class="btn-done" onclick="location.href='index.html'">Quay về Bản Đồ 🗺️</button>
+  <button class="btn-done" onclick="window.location.href='index.html'">Quay về Bản Đồ 🗺️</button>
 </div>
 
 <script>
-  let currentStep = 0;
-  let totalScore = 0;
-  let correctAnswer = 0;
-  let isTappingLocked = false;
+  // Quản lý trạng thái bằng một Object duy nhất để tránh xung đột
+  const gameState = {
+    step: 0,
+    score: 0,
+    target: 0,
+    isProcessing: false,
+    maxSteps: 10
+  };
 
-  function startGame() {
-    isTappingLocked = false;
-    if (currentStep >= 10) {
-      document.getElementById('victory-overlay').style.display = 'flex';
-      localStorage.setItem('kumon_level5_done', 'true');
+  function createLevel() {
+    if (gameState.step >= gameState.maxSteps) {
+      showVictory();
       return;
     }
 
-    // Cập nhật thanh tiến trình
-    document.getElementById('prog-bar').style.width = (currentStep * 10) + '%';
+    gameState.isProcessing = false;
     
-    // Reset ô kết quả
+    // Cập nhật giao diện
+    document.getElementById('prog-bar').style.width = (gameState.step * 10) + '%';
+    document.getElementById('stars-count').textContent = gameState.score + ' ⭐';
+    
     const outBox = document.getElementById('out-val');
     outBox.className = 'pill-box hidden-num';
     outBox.textContent = '?';
 
-    // Tạo đề bài: 5 câu đầu phạm vi 10, 5 câu sau phạm vi 20
-    const baseNum = currentStep < 5 ? Math.floor(Math.random() * 9) + 1 : Math.floor(Math.random() * 20) + 1;
-    correctAnswer = baseNum + 1;
-    document.getElementById('in-val').textContent = baseNum;
+    // Tính toán số (Sử dụng logic an toàn không dùng while vô tận)
+    const base = gameState.step < 5 ? Math.floor(Math.random() * 9) + 1 : Math.floor(Math.random() * 20) + 1;
+    gameState.target = base + 1;
+    document.getElementById('in-val').textContent = base;
 
-    // Tạo danh sách 8 lựa chọn
-    let options = [correctAnswer];
-    while(options.length < 8) {
-      let randomExtra = correctAnswer + Math.floor(Math.random() * 9) - 4; // Lấy các số quanh đáp án
-      if(randomExtra > 0 && !options.includes(randomExtra)) {
-        options.push(randomExtra);
-      }
+    // Sinh đáp án (Cố định 8 lựa chọn)
+    const options = new Set([gameState.target]);
+    let safetyNet = 0;
+    while(options.size < 8 && safetyNet < 50) {
+      let offset = Math.floor(Math.random() * 11) - 5; // -5 đến +5
+      let val = gameState.target + offset;
+      if (val > 0 && val < 40) options.add(val);
+      safetyNet++;
     }
-    options.sort((a, b) => a - b); // Sắp xếp thứ tự tăng dần cho dễ nhìn
 
-    // Vẽ các nút đáp án
+    const sortedOptions = Array.from(options).sort((a, b) => a - b);
+    renderButtons(sortedOptions);
+  }
+
+  function renderButtons(arr) {
     const area = document.getElementById('choices-area');
     area.innerHTML = '';
-    options.forEach(val => {
+    arr.forEach(val => {
       const btn = document.createElement('div');
       btn.className = 'choice-card';
       btn.textContent = val;
-      btn.onclick = () => handleChoice(btn, val);
+      // Dùng pointerdown cho iPad nhạy hơn click
+      btn.onpointerdown = (e) => {
+        e.preventDefault();
+        handleAnswer(btn, val);
+      };
       area.appendChild(btn);
     });
   }
 
-  function handleChoice(element, value) {
-    if (isTappingLocked) return;
+  function handleAnswer(element, val) {
+    if (gameState.isProcessing) return;
 
-    if (value === correctAnswer) {
-      isTappingLocked = true;
-      totalScore++;
-      document.getElementById('stars-count').textContent = totalScore + ' ⭐';
-      
+    if (val === gameState.target) {
+      gameState.isProcessing = true;
+      gameState.score++;
+      gameState.step++;
+
       element.classList.add('correct');
       
-      // Hiệu ứng hiện số ra ở ô Output
       const outBox = document.getElementById('out-val');
-      outBox.textContent = correctAnswer;
+      outBox.textContent = gameState.target;
       outBox.className = 'pill-box revealed-num';
 
-      // Đợi 1.2 giây rồi qua câu mới
-      setTimeout(() => {
-        currentStep++;
-        startGame();
-      }, 1200);
+      // Chuyển câu hỏi sau 1 giây
+      setTimeout(createLevel, 1000);
     } else {
-      // Sai: Rung đỏ và cho phép chọn lại
       element.classList.add('wrong');
-      setTimeout(() => {
-        element.classList.remove('wrong');
-      }, 500);
+      setTimeout(() => element.classList.remove('wrong'), 500);
     }
   }
 
-  // Khởi chạy khi trang đã sẵn sàng
-  window.onload = startGame;
+  function showVictory() {
+    document.getElementById('victory-overlay').style.display = 'flex';
+    localStorage.setItem('kumon_level5_done', 'true');
+  }
+
+  // Khởi chạy an toàn
+  window.onload = () => {
+    // Đảm bảo không bị load lại index cũ từ cache
+    console.log("Game Engine v2.0 Started");
+    createLevel();
+  };
 </script>
 </body>
 </html>
