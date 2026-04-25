@@ -7,121 +7,179 @@
 <title>🚀 Máy Nhảy +1</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #ECEFF1; --primary: #607D8B; --card: #FFFFFF; --text: #263238; --neon: #00E5FF;
-  }
+  :root { --bg: #ECEFF1; --card: #FFFFFF; --text: #263238; --neon: #00E5FF; }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   body { background: var(--bg); font-family: 'Nunito', sans-serif; color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-  .header { display: flex; align-items: center; padding: 15px 20px; background: var(--card); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-  .btn-back { font-size: 1.1rem; font-weight: 800; padding: 8px 20px; border-radius: 20px; border: none; cursor: pointer; background: #eee; }
-  .progress-bar { flex: 1; height: 12px; background: #E0E0E0; border-radius: 10px; margin: 0 20px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--neon); width: 0%; transition: width 0.3s; }
+  /* Header */
+  .header { display: flex; align-items: center; padding: 15px 20px; background: var(--card); box-shadow: 0 4px 10px rgba(0,0,0,0.05); z-index: 10; }
+  .btn-back { font-size: 1rem; font-weight: 800; padding: 8px 15px; border-radius: 15px; border: none; cursor: pointer; background: #eee; color: #555; }
+  .prog-container { flex: 1; height: 10px; background: #E0E0E0; border-radius: 10px; margin: 0 15px; overflow: hidden; }
+  #prog-bar { height: 100%; background: var(--neon); width: 0%; transition: width 0.3s; }
+  #stars-count { font-weight: 900; color: #FF9800; min-width: 50px; text-align: right; }
 
-  .stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+  /* Game Area */
+  .game-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; gap: 30px; }
 
-  /* Giao diện máy tối giản */
-  .machine-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 40px; }
-  .box { width: 80px; height: 80px; background: #fff; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 900; border: 4px solid #37474F; box-shadow: 0 5px 0 #37474F; }
-  .main-machine { width: 120px; height: 120px; background: #546E7A; border-radius: 20px; border: 6px solid #263238; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; position: relative; }
-  .plus-text { font-size: 1.5rem; font-weight: 900; background: #FF5252; padding: 2px 10px; border-radius: 10px; position: absolute; top: -15px; }
+  /* Giao diện máy */
+  .machine-display { display: flex; align-items: center; gap: 15px; }
+  .pill-box { 
+    width: 75px; height: 75px; background: #fff; border-radius: 15px; 
+    display: flex; align-items: center; justify-content: center; 
+    font-size: 2.2rem; font-weight: 900; border: 4px solid #37474F; 
+    box-shadow: 0 4px 0 #37474F; position: relative;
+  }
+  .machine-core { 
+    width: 130px; height: 130px; background: #546E7A; border-radius: 25px; 
+    border: 6px solid #263238; display: flex; flex-direction: column; 
+    align-items: center; justify-content: center; color: white; position: relative; 
+  }
+  .label-plus { font-size: 1.4rem; font-weight: 900; background: #FF5252; padding: 2px 12px; border-radius: 10px; position: absolute; top: -15px; box-shadow: 0 3px 0 #B71C1C; }
+  .rocket-icon { font-size: 2.8rem; }
 
-  .output-box { background: #cfd8dc; color: transparent; border-style: dashed; }
-  .output-box.show { background: #fff; color: #263238; border-style: solid; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  /* Hiệu ứng số chui ra */
+  #out-val { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .hidden-num { color: transparent; background: #cfd8dc; border-style: dashed; }
+  .revealed-num { color: #263238; background: #fff; border-style: solid; transform: scale(1.1); }
 
-  @keyframes pop { 0% { transform: scale(0.5); } 100% { transform: scale(1); } }
+  /* Bàn phím đáp án */
+  .choices-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 480px; }
+  .choice-card { 
+    background: #fff; border-radius: 15px; border: 3px solid #CFD8DC; 
+    box-shadow: 0 5px 0 #CFD8DC; padding: 15px 0; font-size: 1.8rem; 
+    font-weight: 900; cursor: pointer; text-align: center; transition: 0.1s;
+  }
+  .choice-card:active { transform: translateY(4px); box-shadow: none; }
+  .choice-card.correct { border-color: #00E676; background: #E8F5E9; color: #1B5E20; box-shadow: 0 5px 0 #1B5E20; }
+  .choice-card.wrong { border-color: #FF5252; background: #FFEBEE; animation: shake 0.4s; }
 
-  .options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 500px; }
-  .opt-btn { background: #fff; border-radius: 15px; border: 3px solid #CFD8DC; box-shadow: 0 5px 0 #CFD8DC; padding: 15px 0; font-size: 1.8rem; font-weight: 900; cursor: pointer; text-align: center; }
-  .opt-btn:active { transform: translateY(4px); box-shadow: none; }
-  .opt-btn.ok { border-color: #00E676; background: #E8F5E9; color: #1B5E20; }
-  .opt-btn.err { border-color: #FF5252; background: #FFEBEE; animation: shake 0.4s; }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 
-  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+  /* Victory */
+  #victory-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.98); flex-direction: column; align-items: center; justify-content: center; z-index: 100; padding: 20px; text-align: center; }
+  .btn-done { padding: 15px 40px; background: #00BCD4; color: white; border: none; border-radius: 30px; font-weight: 900; font-size: 1.2rem; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 0 #00838F; }
 
-  .victory { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.98); flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+  @media (max-width: 400px) {
+    .pill-box { width: 60px; height: 60px; font-size: 1.8rem; }
+    .machine-core { width: 100px; height: 100px; }
+  }
 </style>
 </head>
 <body>
 
 <div class="header">
   <button class="btn-back" onclick="location.href='index.html'">◂ Thoát</button>
-  <div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
-  <div style="font-weight:900" id="score">0 ⭐</div>
+  <div class="prog-container"><div id="prog-bar"></div></div>
+  <div id="stars-count">0 ⭐</div>
 </div>
 
-<div class="stage">
-  <div class="machine-wrap">
-    <div class="box" id="in-val">0</div>
-    <div style="font-size: 2rem;">➔</div>
-    <div class="main-machine">
-      <div class="plus-text">+ 1</div>
-      <div style="font-size: 2.5rem;">🚀</div>
-    </div>
-    <div style="font-size: 2rem;">➔</div>
-    <div class="box output-box" id="out-val">?</div>
+<div class="game-area">
+  <div style="text-align:center">
+    <h2 style="color:#455A64">Máy Nhảy +1</h2>
+    <p style="color:#78909C; font-weight:700">Số mấy sẽ chui ra nhỉ?</p>
   </div>
 
-  <div class="options" id="opts"></div>
+  <div class="machine-display">
+    <div class="pill-box" id="in-val">?</div>
+    <div style="font-size: 1.5rem; color:#90A4AE">➔</div>
+    <div class="machine-core">
+      <div class="label-plus">+ 1</div>
+      <div class="rocket-icon">🚀</div>
+    </div>
+    <div style="font-size: 1.5rem; color:#90A4AE">➔</div>
+    <div class="pill-box hidden-num" id="out-val">?</div>
+  </div>
+
+  <div class="choices-grid" id="choices-area"></div>
 </div>
 
-<div class="victory" id="vic">
-  <h1 style="font-size:3rem">🌟 GIỎI QUÁ!</h1>
-  <p style="margin-bottom:20px; font-weight:bold">Con đã hoàn thành thử thách!</p>
-  <button style="padding:15px 30px; background:#00BCD4; color:white; border:none; border-radius:25px; font-weight:900;" onclick="location.href='index.html'">Quay về Bản Đồ</button>
+<div id="victory-overlay">
+  <div style="font-size: 5rem;">🏆</div>
+  <h1 style="font-size: 2.5rem; color: #263238;">BÉ GIỎI QUÁ!</h1>
+  <p style="font-weight: 700; color: #78909C;">Con đã hoàn thành toàn bộ thử thách!</p>
+  <button class="btn-done" onclick="location.href='index.html'">Quay về Bản Đồ 🗺️</button>
 </div>
 
 <script>
-  let step = 0, score = 0, ans = 0, locked = false;
+  let currentStep = 0;
+  let totalScore = 0;
+  let correctAnswer = 0;
+  let isTappingLocked = false;
 
-  function play() {
-    locked = false;
-    if (step >= 10) {
-      document.getElementById('vic').style.display = 'flex';
+  function startGame() {
+    isTappingLocked = false;
+    if (currentStep >= 10) {
+      document.getElementById('victory-overlay').style.display = 'flex';
       localStorage.setItem('kumon_level5_done', 'true');
       return;
     }
-    document.getElementById('prog').style.width = (step * 10) + '%';
+
+    // Cập nhật thanh tiến trình
+    document.getElementById('prog-bar').style.width = (currentStep * 10) + '%';
+    
+    // Reset ô kết quả
     const outBox = document.getElementById('out-val');
-    outBox.classList.remove('show');
+    outBox.className = 'pill-box hidden-num';
     outBox.textContent = '?';
 
-    const num = step < 5 ? Math.floor(Math.random()*9)+1 : Math.floor(Math.random()*20)+1;
-    ans = num + 1;
-    document.getElementById('in-val').textContent = num;
+    // Tạo đề bài: 5 câu đầu phạm vi 10, 5 câu sau phạm vi 20
+    const baseNum = currentStep < 5 ? Math.floor(Math.random() * 9) + 1 : Math.floor(Math.random() * 20) + 1;
+    correctAnswer = baseNum + 1;
+    document.getElementById('in-val').textContent = baseNum;
 
-    let arr = [ans];
-    while(arr.length < 8) {
-      let r = ans + Math.floor(Math.random()*7) - 3;
-      if(r > 0 && !arr.includes(r)) arr.push(r);
+    // Tạo danh sách 8 lựa chọn
+    let options = [correctAnswer];
+    while(options.length < 8) {
+      let randomExtra = correctAnswer + Math.floor(Math.random() * 9) - 4; // Lấy các số quanh đáp án
+      if(randomExtra > 0 && !options.includes(randomExtra)) {
+        options.push(randomExtra);
+      }
     }
-    arr.sort((a,b) => a-b);
+    options.sort((a, b) => a - b); // Sắp xếp thứ tự tăng dần cho dễ nhìn
 
-    const grid = document.getElementById('opts');
-    grid.innerHTML = '';
-    arr.forEach(v => {
-      const b = document.createElement('div');
-      b.className = 'opt-btn';
-      b.textContent = v;
-      b.onclick = () => {
-        if(locked) return;
-        if(v === ans) {
-          locked = true;
-          score++;
-          document.getElementById('score').textContent = score + ' ⭐';
-          b.classList.add('ok');
-          outBox.textContent = ans;
-          outBox.classList.add('show');
-          setTimeout(() => { step++; play(); }, 1200);
-        } else {
-          b.classList.add('err');
-          setTimeout(() => b.classList.remove('err'), 500);
-        }
-      };
-      grid.appendChild(b);
+    // Vẽ các nút đáp án
+    const area = document.getElementById('choices-area');
+    area.innerHTML = '';
+    options.forEach(val => {
+      const btn = document.createElement('div');
+      btn.className = 'choice-card';
+      btn.textContent = val;
+      btn.onclick = () => handleChoice(btn, val);
+      area.appendChild(btn);
     });
   }
-  window.onload = play;
+
+  function handleChoice(element, value) {
+    if (isTappingLocked) return;
+
+    if (value === correctAnswer) {
+      isTappingLocked = true;
+      totalScore++;
+      document.getElementById('stars-count').textContent = totalScore + ' ⭐';
+      
+      element.classList.add('correct');
+      
+      // Hiệu ứng hiện số ra ở ô Output
+      const outBox = document.getElementById('out-val');
+      outBox.textContent = correctAnswer;
+      outBox.className = 'pill-box revealed-num';
+
+      // Đợi 1.2 giây rồi qua câu mới
+      setTimeout(() => {
+        currentStep++;
+        startGame();
+      }, 1200);
+    } else {
+      // Sai: Rung đỏ và cho phép chọn lại
+      element.classList.add('wrong');
+      setTimeout(() => {
+        element.classList.remove('wrong');
+      }, 500);
+    }
+  }
+
+  // Khởi chạy khi trang đã sẵn sàng
+  window.onload = startGame;
 </script>
 </body>
 </html>
