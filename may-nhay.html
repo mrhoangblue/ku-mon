@@ -26,7 +26,6 @@
     display: flex; flex-direction: column; overflow: hidden;
   }
 
-  /* --- HEADER --- */
   .header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 15px 20px; background: var(--card);
@@ -34,7 +33,7 @@
   }
   .btn-back {
     font-size: 1.1rem; font-weight: 800; color: var(--text-muted);
-    background: #f0f4f8; padding: 8px 16px; border-radius: 20px; border: none;
+    background: #f0f4f8; padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer;
   }
   .progress-bar {
     flex: 1; height: 10px; background: #E0E0E0; border-radius: 10px;
@@ -46,13 +45,11 @@
   }
   .stars { font-size: 1.2rem; font-weight: 900; color: #FF9800; }
 
-  /* --- STAGE --- */
   .stage {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 20px; width: 100%; max-width: 600px; margin: 0 auto;
   }
 
-  /* Machine Visual */
   .machine-container {
     position: relative; width: 100%; height: 200px;
     display: flex; align-items: center; justify-content: center; margin-bottom: 40px;
@@ -61,8 +58,17 @@
     width: 220px; height: 140px; background: var(--machine);
     border-radius: 20px; border: 6px solid #37474F;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    position: relative; box-shadow: 0 10px 0 #263238, 0 0 20px rgba(0,229,255,0.2);
+    position: relative; box-shadow: 0 10px 0 #263238, 0 0 20px rgba(0,229,255,0.1);
   }
+  
+  .gear { font-size: 3.5rem; transition: transform 0.5s; }
+  /* Chỉ xoay khi có class .working */
+  .machine-body.working .gear {
+    animation: gearRotate 1s linear infinite;
+  }
+
+  @keyframes gearRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
   .machine-label {
     position: absolute; top: -15px; background: #FF5252; color: white;
     padding: 2px 15px; border-radius: 10px; font-weight: 900; font-size: 1.2rem;
@@ -78,17 +84,16 @@
     width: 70px; height: 70px; background: #fff; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 2.5rem; font-weight: 900; color: var(--primary-dark);
-    border: 4px solid var(--neon); position: absolute;
+    border: 4px solid var(--neon); position: absolute; z-index: 5;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   }
   
-  .pill-in { left: -35px; animation: slideIn 1s ease forwards; }
-  .pill-out { right: -35px; animation: slideOut 1.5s ease forwards; opacity: 0; }
+  .pill-in { left: -35px; animation: slideIn 0.8s ease forwards; }
+  .pill-out { right: -35px; animation: slideOut 1.2s ease forwards; }
 
-  @keyframes slideIn { 0% { transform: translateX(-50px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
-  @keyframes slideOut { 0% { transform: translateX(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateX(80px); opacity: 0; } }
+  @keyframes slideIn { 0% { transform: translateX(-100px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+  @keyframes slideOut { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(150px); opacity: 0; } }
 
-  /* --- OPTIONS --- */
   .options-grid {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%;
   }
@@ -103,7 +108,6 @@
   .option-btn.correct { border-color: #00E676; background: #E8F5E9; color: #1B5E20; }
   .option-btn.wrong { border-color: #FF5252; background: #FFEBEE; color: #B71C1C; animation: shake 0.4s; }
 
-  /* --- VICTORY --- */
   .victory {
     display: none; position: fixed; inset: 0; background: rgba(236, 239, 241, 0.98);
     flex-direction: column; align-items: center; justify-content: center; z-index: 100;
@@ -115,7 +119,7 @@
 <body>
 
 <div class="header">
-  <button class="btn-back" onclick="location.href='index.html'">◂ Thoát</button>
+  <button class="btn-back" onclick="location.href='index.html'">◂ Quay lại</button>
   <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
   <div class="stars" id="score-txt">0 ⭐</div>
 </div>
@@ -123,92 +127,60 @@
 <div class="stage">
   <div style="text-align: center; margin-bottom: 20px;">
     <h2 style="color: var(--primary-dark);">Máy Nhảy +1</h2>
-    <p style="color: var(--text-muted); font-weight: 700;">Số tiếp theo là số mấy nhỉ?</p>
+    <p style="color: var(--text-muted); font-weight: 700;">Số chui ra khỏi máy là số mấy nhỉ?</p>
   </div>
 
   <div class="machine-container">
     <div class="input-hole"></div>
-    <div class="number-pill pill-in" id="input-val">5</div>
-    <div class="machine-body">
-      <div class="machine-label">+ 1</div>
-      <div style="font-size: 3rem;">⚙️</div>
-    </div>
+    <div id="pill-container-in"></div>
+    <div class="machine-body" id="machine-body"><div class="machine-label">+ 1</div><div class="gear">⚙️</div></div>
     <div class="output-hole"></div>
-    <div class="number-pill pill-out" id="output-val">?</div>
+    <div id="pill-container-out"></div>
   </div>
 
-  <div class="options-grid" id="options">
-    </div>
+  <div class="options-grid" id="options"></div>
 </div>
 
 <div class="victory" id="victory">
   <div style="font-size: 6rem; margin-bottom: 20px;">🚀✨</div>
   <h1 style="color: var(--primary-dark);">Siêu Nhân Toán Học!</h1>
-  <p style="margin-bottom: 30px; font-weight: 700; color: var(--text-muted);">Con đã hoàn thành lộ trình Kumon cơ bản!</p>
-  <button style="padding: 15px 40px; background: #00BCD4; color:white; border:none; border-radius:30px; font-weight:900; font-size:1.2rem;" onclick="location.href='index.html'">Quay về Bản Đồ 🗺️</button>
+  <p style="margin-bottom: 30px; font-weight: 700; color: var(--text-muted);">Con đã hoàn thành lộ trình!</p>
+  <button style="padding: 15px 40px; background: #00BCD4; color:white; border:none; border-radius:30px; font-weight:900; font-size:1.2rem; cursor:pointer;" onclick="location.href='index.html'">Quay về Bản Đồ 🗺️</button>
 </div>
 
 <script>
-  let current = 0;
-  let score = 0;
-  let target = 0;
-  let isWaiting = false;
-
+  let current = 0, score = 0, target = 0, isWaiting = false;
   function loadQuestion() {
     isWaiting = false;
-    document.getElementById('prog-fill').style.width = (current / 10 * 100) + '%';
-    document.getElementById('output-val').style.display = 'none';
-    
-    // Tạo số ngẫu nhiên tăng dần độ khó
-    const input = current < 5 ? Math.floor(Math.random() * 9) + 1 : Math.floor(Math.random() * 20) + 1;
+    document.getElementById('prog-fill').style.width = (current/10*100)+'%';
+    document.getElementById('machine-body').classList.remove('working');
+    document.getElementById('pill-container-out').innerHTML = '';
+    const input = current < 5 ? Math.floor(Math.random()*9)+1 : Math.floor(Math.random()*20)+1;
     target = input + 1;
-    document.getElementById('input-val').textContent = input;
-
+    document.getElementById('pill-container-in').innerHTML = `<div class="number-pill pill-in">${input}</div>`;
     let opts = [target];
-    while(opts.length < 8) {
-      let r = target + Math.floor(Math.random() * 5) - 2;
-      if(r > 0 && !opts.includes(r)) opts.push(r);
+    while(opts.length<8){
+      let r = target + Math.floor(Math.random()*7)-3;
+      if(r>0 && !opts.includes(r)) opts.push(r);
     }
-    opts.sort((a,b) => a - b);
-
+    opts.sort((a,b)=>a-b);
     const grid = document.getElementById('options');
     grid.innerHTML = '';
     opts.forEach(n => {
-      const btn = document.createElement('div');
-      btn.className = 'option-btn';
-      btn.textContent = n;
-      btn.onclick = () => check(btn, n);
+      const btn = document.createElement('div'); btn.className = 'option-btn'; btn.textContent = n;
+      btn.onclick = () => {
+        if(isWaiting) return;
+        if(n === target){
+          isWaiting = true; score++; document.getElementById('score-txt').textContent = score+' ⭐';
+          btn.classList.add('correct'); document.getElementById('machine-body').classList.add('working');
+          setTimeout(() => { document.getElementById('pill-container-out').innerHTML = `<div class="number-pill pill-out">${n}</div>`; }, 300);
+          setTimeout(() => { current++; if(current<10) loadQuestion(); else { document.getElementById('victory').style.display='flex'; localStorage.setItem('kumon_level5_done','true'); } }, 1500);
+        } else { btn.classList.add('wrong'); setTimeout(() => btn.classList.remove('wrong'), 500); }
+      };
       grid.appendChild(btn);
     });
   }
-
-  function check(btn, val) {
-    if(isWaiting) return;
-    if(val === target) {
-      isWaiting = true;
-      score++;
-      document.getElementById('score-txt').textContent = score + ' ⭐';
-      btn.classList.add('correct');
-      
-      const out = document.getElementById('output-val');
-      out.textContent = val;
-      out.style.display = 'flex';
-      
-      setTimeout(() => {
-        current++;
-        if(current < 10) loadQuestion();
-        else {
-          document.getElementById('victory').style.display = 'flex';
-          localStorage.setItem('kumon_level5_done', 'true');
-        }
-      }, 1500);
-    } else {
-      btn.classList.add('wrong');
-      setTimeout(() => btn.classList.remove('wrong'), 500);
-    }
-  }
-
-  loadQuestion();
+  window.onload = loadQuestion;
 </script>
 </body>
 </html>
