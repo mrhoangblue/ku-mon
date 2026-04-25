@@ -4,205 +4,124 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>🚀 Máy Nhảy +1 - Kumon Math</title>
+<title>🚀 Máy Nhảy +1</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #ECEFF1; --primary: #607D8B; --primary-dark: #455A64;
-    --card: #FFFFFF; --text: #263238; --text-muted: #78909C;
-    --machine: #546E7A; --neon: #00E5FF;
+    --bg: #ECEFF1; --primary: #607D8B; --card: #FFFFFF; --text: #263238; --neon: #00E5FF;
   }
-  
-  *, *::before, *::after {
-    box-sizing: border-box; margin: 0; padding: 0;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none; -webkit-user-select: none;
-    touch-action: manipulation;
-  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  body { background: var(--bg); font-family: 'Nunito', sans-serif; color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-  body {
-    background: var(--bg); font-family: 'Nunito', sans-serif;
-    color: var(--text); height: 100vh;
-    display: flex; flex-direction: column; overflow: hidden;
-  }
+  .header { display: flex; align-items: center; padding: 15px 20px; background: var(--card); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+  .btn-back { font-size: 1.1rem; font-weight: 800; padding: 8px 20px; border-radius: 20px; border: none; cursor: pointer; background: #eee; }
+  .progress-bar { flex: 1; height: 12px; background: #E0E0E0; border-radius: 10px; margin: 0 20px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--neon); width: 0%; transition: width 0.3s; }
 
-  .header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 15px 20px; background: var(--card);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 10;
-  }
-  .btn-back {
-    font-size: 1.1rem; font-weight: 800; color: var(--text-muted);
-    background: #f0f4f8; padding: 8px 20px; border-radius: 20px; border: none; cursor: pointer;
-  }
-  .progress-bar {
-    flex: 1; height: 12px; background: #E0E0E0; border-radius: 10px; margin: 0 20px; overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%; background: var(--neon); width: 0%; transition: width 0.4s ease;
-  }
-  .stars { font-size: 1.2rem; font-weight: 900; color: #FF9800; }
+  .stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
 
-  .stage {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 20px; width: 100%; max-width: 600px; margin: 0 auto;
-  }
+  /* Giao diện máy tối giản */
+  .machine-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 40px; }
+  .box { width: 80px; height: 80px; background: #fff; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 900; border: 4px solid #37474F; box-shadow: 0 5px 0 #37474F; }
+  .main-machine { width: 120px; height: 120px; background: #546E7A; border-radius: 20px; border: 6px solid #263238; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; position: relative; }
+  .plus-text { font-size: 1.5rem; font-weight: 900; background: #FF5252; padding: 2px 10px; border-radius: 10px; position: absolute; top: -15px; }
 
-  /* Machine Visual */
-  .machine-area {
-    position: relative; width: 100%; height: 220px;
-    display: flex; align-items: center; justify-content: center; margin-bottom: 30px;
-  }
-  .machine-box {
-    width: 200px; height: 140px; background: var(--machine);
-    border: 6px solid #37474F; border-radius: 25px;
-    position: relative; z-index: 2; box-shadow: 0 10px 0 #263238;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-  }
-  .gear-icon { font-size: 3.5rem; transition: transform 0.5s; }
-  .working .gear-icon { animation: rotateGear 1s linear infinite; }
-  @keyframes rotateGear { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .output-box { background: #cfd8dc; color: transparent; border-style: dashed; }
+  .output-box.show { background: #fff; color: #263238; border-style: solid; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-  .plus-tag {
-    position: absolute; top: -15px; background: #FF5252; color: white;
-    padding: 4px 15px; border-radius: 12px; font-weight: 900; font-size: 1.3rem;
-  }
+  @keyframes pop { 0% { transform: scale(0.5); } 100% { transform: scale(1); } }
 
-  /* Holes */
-  .hole { width: 50px; height: 80px; background: #263238; border-radius: 10px; position: absolute; top: 30px; border: 4px solid #455A64; }
-  .hole-in { left: -30px; }
-  .hole-out { right: -30px; }
+  .options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 500px; }
+  .opt-btn { background: #fff; border-radius: 15px; border: 3px solid #CFD8DC; box-shadow: 0 5px 0 #CFD8DC; padding: 15px 0; font-size: 1.8rem; font-weight: 900; cursor: pointer; text-align: center; }
+  .opt-btn:active { transform: translateY(4px); box-shadow: none; }
+  .opt-btn.ok { border-color: #00E676; background: #E8F5E9; color: #1B5E20; }
+  .opt-btn.err { border-color: #FF5252; background: #FFEBEE; animation: shake 0.4s; }
 
-  /* Pills */
-  .pill {
-    width: 75px; height: 75px; background: #fff; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 2.5rem; font-weight: 900; color: #263238;
-    border: 5px solid var(--neon); position: absolute; z-index: 10;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  }
-  .pill-in { left: -30px; animation: enterIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-  .pill-out { right: -30px; animation: exitOut 1s ease-in forwards; }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-  @keyframes enterIn { 0% { transform: translateX(-100px) scale(0); opacity: 0; } 100% { transform: translateX(0) scale(1); opacity: 1; } }
-  @keyframes exitOut { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(150px); opacity: 0; } }
-
-  /* Options */
-  .options-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; }
-  .opt-btn {
-    background: #fff; border-radius: 20px; border: 3px solid #CFD8DC; box-shadow: 0 6px 0 #CFD8DC;
-    padding: 15px 0; font-size: 1.8rem; font-weight: 900; color: var(--text);
-    cursor: pointer; transition: 0.1s; text-align: center;
-  }
-  .opt-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #CFD8DC; }
-  .opt-btn.correct { border-color: #00E676; background: #E8F5E9; color: #1B5E20; box-shadow: 0 6px 0 #1B5E20; }
-  .opt-btn.wrong { border-color: #FF5252; background: #FFEBEE; color: #B71C1C; animation: shake 0.4s; }
-
-  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
-
-  .victory {
-    display: none; position: fixed; inset: 0; background: rgba(236,239,241,0.98);
-    flex-direction: column; align-items: center; justify-content: center; z-index: 100;
-  }
+  .victory { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.98); flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <button class="btn-back" onclick="location.href='index.html'">◂ Quay lại</button>
-  <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
-  <div class="stars" id="score-txt">0 ⭐</div>
+  <button class="btn-back" onclick="location.href='index.html'">◂ Thoát</button>
+  <div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+  <div style="font-weight:900" id="score">0 ⭐</div>
 </div>
 
 <div class="stage">
-  <div style="text-align:center; margin-bottom: 20px;">
-    <h2 style="color:var(--primary-dark)">Máy Nhảy +1</h2>
-    <p style="color:var(--text-muted); font-weight:700">Số tiếp theo là số mấy nhỉ?</p>
-  </div>
-
-  <div class="machine-area">
-    <div class="hole hole-in"></div>
-    <div id="in-container"></div>
-    
-    <div class="machine-box" id="machine">
-      <div class="plus-tag">+ 1</div>
-      <div class="gear-icon">⚙️</div>
+  <div class="machine-wrap">
+    <div class="box" id="in-val">0</div>
+    <div style="font-size: 2rem;">➔</div>
+    <div class="main-machine">
+      <div class="plus-text">+ 1</div>
+      <div style="font-size: 2.5rem;">🚀</div>
     </div>
-
-    <div class="hole hole-out"></div>
-    <div id="out-container"></div>
+    <div style="font-size: 2rem;">➔</div>
+    <div class="box output-box" id="out-val">?</div>
   </div>
 
-  <div class="options-grid" id="options"></div>
+  <div class="options" id="opts"></div>
 </div>
 
-<div class="victory" id="victory">
-  <div style="font-size:6rem; margin-bottom:20px;">🚀✨</div>
-  <h1 style="color:var(--primary-dark)">Quá tuyệt vời!</h1>
-  <p style="margin-bottom:30px; font-weight:700; color:var(--text-muted)">Con đã phá đảo trò chơi này!</p>
-  <button style="padding:15px 40px; background:#00BCD4; color:white; border:none; border-radius:30px; font-weight:900; font-size:1.3rem;" onclick="location.href='index.html'">Về Bản Đồ 🗺️</button>
+<div class="victory" id="vic">
+  <h1 style="font-size:3rem">🌟 GIỎI QUÁ!</h1>
+  <p style="margin-bottom:20px; font-weight:bold">Con đã hoàn thành thử thách!</p>
+  <button style="padding:15px 30px; background:#00BCD4; color:white; border:none; border-radius:25px; font-weight:900;" onclick="location.href='index.html'">Quay về Bản Đồ</button>
 </div>
 
 <script>
-  let current = 0, score = 0, targetNum = 0, isLocked = false;
-  
-  function init() {
-    isLocked = false;
-    if (current >= 10) {
-      document.getElementById('victory').style.display = 'flex';
+  let step = 0, score = 0, ans = 0, locked = false;
+
+  function play() {
+    locked = false;
+    if (step >= 10) {
+      document.getElementById('vic').style.display = 'flex';
       localStorage.setItem('kumon_level5_done', 'true');
       return;
     }
-    
-    document.getElementById('prog-fill').style.width = (current * 10) + '%';
-    document.getElementById('machine').classList.remove('working');
-    document.getElementById('out-container').innerHTML = '';
-    
-    const inputNum = current < 5 ? Math.floor(Math.random()*9)+1 : Math.floor(Math.random()*20)+1;
-    targetNum = inputNum + 1;
-    
-    document.getElementById('in-container').innerHTML = `<div class="pill pill-in">${inputNum}</div>`;
-    
-    let choices = [targetNum];
-    while(choices.length < 8) {
-      let r = targetNum + Math.floor(Math.random()*9) - 4;
-      if(r > 0 && !choices.includes(r)) choices.push(r);
-    }
-    choices.sort((a,b) => a-b);
+    document.getElementById('prog').style.width = (step * 10) + '%';
+    const outBox = document.getElementById('out-val');
+    outBox.classList.remove('show');
+    outBox.textContent = '?';
 
-    const grid = document.getElementById('options');
+    const num = step < 5 ? Math.floor(Math.random()*9)+1 : Math.floor(Math.random()*20)+1;
+    ans = num + 1;
+    document.getElementById('in-val').textContent = num;
+
+    let arr = [ans];
+    while(arr.length < 8) {
+      let r = ans + Math.floor(Math.random()*7) - 3;
+      if(r > 0 && !arr.includes(r)) arr.push(r);
+    }
+    arr.sort((a,b) => a-b);
+
+    const grid = document.getElementById('opts');
     grid.innerHTML = '';
-    choices.forEach(val => {
+    arr.forEach(v => {
       const b = document.createElement('div');
       b.className = 'opt-btn';
-      b.textContent = val;
+      b.textContent = v;
       b.onclick = () => {
-        if(isLocked) return;
-        if(val === targetNum) {
-          isLocked = true;
+        if(locked) return;
+        if(v === ans) {
+          locked = true;
           score++;
-          document.getElementById('score-txt').textContent = score + ' ⭐';
-          b.classList.add('correct');
-          document.getElementById('machine').classList.add('working');
-          
-          setTimeout(() => {
-            document.getElementById('out-container').innerHTML = `<div class="pill pill-out">${val}</div>`;
-          }, 400);
-
-          setTimeout(() => {
-            current++;
-            init();
-          }, 1600);
+          document.getElementById('score').textContent = score + ' ⭐';
+          b.classList.add('ok');
+          outBox.textContent = ans;
+          outBox.classList.add('show');
+          setTimeout(() => { step++; play(); }, 1200);
         } else {
-          b.classList.add('wrong');
-          setTimeout(() => b.classList.remove('wrong'), 500);
+          b.classList.add('err');
+          setTimeout(() => b.classList.remove('err'), 500);
         }
       };
       grid.appendChild(b);
     });
   }
-
-  window.onload = init;
+  window.onload = play;
 </script>
 </body>
 </html>
