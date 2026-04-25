@@ -215,6 +215,7 @@
 
   function checkLock(element, url) {
     if (element.classList.contains('node-locked')) {
+      // Rung khi bị khóa
       element.classList.remove('node-locked'); 
       void element.offsetWidth; 
       element.classList.add('node-locked');
@@ -223,22 +224,52 @@
     }
   }
 
-  // Hàm chạy khi tải trang Bản đồ để kiểm tra tiến trình
+  // --- TÍNH NĂNG BÍ MẤT DÀNH CHO BỐ: BẤM 3 LẦN ĐỂ MỞ KHÓA TẤT CẢ ---
+  let tapCount = 0;
+  function secretUnlock() {
+    tapCount++;
+    if (tapCount >= 3) {
+      // Mở khóa toàn bộ các node trên bản đồ
+      document.querySelectorAll('.level-node.node-locked').forEach(node => {
+        node.classList.remove('node-locked');
+        node.classList.add('node-current');
+      });
+      alert("✨ Đã mở khóa toàn bộ Đảo Toán Học!");
+      tapCount = 0; // Reset
+    }
+    // Sau 2 giây nếu không bấm tiếp sẽ reset bộ đếm
+    setTimeout(() => { tapCount = 0; }, 2000); 
+  }
+
+  // Gắn tính năng bí mật vào tiêu đề h1
+  document.addEventListener('DOMContentLoaded', () => {
+    const title = document.querySelector('.header h1');
+    if (title) {
+      title.onclick = secretUnlock;
+    }
+  });
+
+  // Kiểm tra tiến trình Kumon như cũ
   window.onload = function() {
-    // Nếu bé đã chơi xong Trạm 1 (Bảng số)
     if (localStorage.getItem('kumon_level1_done') === 'true') {
       const node1 = document.getElementById('node1');
-      if(node1) {
-        node1.classList.remove('node-current');
-        node1.classList.add('node-completed');
-      }
-      
-      // Mở khóa Trạm 2 (Nối Điểm)
+      if(node1) { node1.classList.remove('node-current'); node1.classList.add('node-completed'); }
       const node2 = document.getElementById('node2');
-      if(node2) {
-        node2.classList.remove('node-locked');
-        node2.classList.add('node-current');
-      }
+      if(node2) { node2.classList.remove('node-locked'); node2.classList.add('node-current'); }
+    }
+
+    if (localStorage.getItem('kumon_level2_done') === 'true') {
+      const node2 = document.getElementById('node2');
+      if(node2) { node2.classList.remove('node-current'); node2.classList.add('node-completed'); }
+      const node3 = document.getElementById('node3');
+      if(node3) { node3.classList.remove('node-locked'); node3.classList.add('node-current'); }
+    }
+
+    if (localStorage.getItem('kumon_level3_done') === 'true') {
+      const node3 = document.getElementById('node3');
+      if(node3) { node3.classList.remove('node-current'); node3.classList.add('node-completed'); }
+      const node4 = document.getElementById('node4'); 
+      if(node4) { node4.classList.remove('node-locked'); node4.classList.add('node-current'); }
     }
   }
 </script>
