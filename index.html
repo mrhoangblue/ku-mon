@@ -209,28 +209,39 @@
   </div>
 
 <script>
-  // Chuyển hướng đến file game (Nếu dùng GitHub Pages, các file HTML sẽ đặt cùng cấp)
   function go(url) {
     window.location.href = url;
   }
 
-  // Kiểm tra nếu trạm bị khóa thì rung và không cho vào
   function checkLock(element, url) {
     if (element.classList.contains('node-locked')) {
-      // Bé chạm vào ô đang khóa, tạo hiệu ứng rung nhẹ
-      element.classList.remove('node-locked'); // Xóa class để trigger lại animation
-      void element.offsetWidth; // Trigger reflow
+      element.classList.remove('node-locked'); 
+      void element.offsetWidth; 
       element.classList.add('node-locked');
-      
-      // Có thể thêm âm thanh "Tít tít" (báo lỗi) ở đây sau này
     } else {
       go(url);
     }
   }
 
-  // Ghi chú: Sau này bạn có thể dùng localStorage để lưu tiến trình của bé.
-  // Ví dụ: Nếu bài 1 hoàn thành (đạt 3 sao), dùng JS gỡ class 'node-locked' của bài 2 
-  // và đổi thành 'node-current'.
+  // Hàm chạy khi tải trang Bản đồ để kiểm tra tiến trình
+  window.onload = function() {
+    // Nếu bé đã chơi xong Trạm 1 (Bảng số)
+    if (localStorage.getItem('kumon_level1_done') === 'true') {
+      const node1 = document.getElementById('node1');
+      if(node1) {
+        node1.classList.remove('node-current');
+        node1.classList.add('node-completed');
+      }
+      
+      // Mở khóa Trạm 2 (Nối Điểm)
+      const node2 = document.getElementById('node2');
+      if(node2) {
+        node2.classList.remove('node-locked');
+        node2.classList.add('node-current');
+      }
+    }
+  }
 </script>
+
 </body>
 </html>
