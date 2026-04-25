@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>🖍️ Nối Điểm Tạo Hình</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E3F2FD; --primary: #2196F3; --primary-dark: #1565C0;
+    --card: #FFFFFF; --text: #263238; --text-muted: #78909C;
+    --dot: #FF9800; --line: #4CAF50;
+  }
+  
+  *, *::before, *::after {
+    box-sizing: border-box; margin: 0; padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none; -webkit-user-select: none;
+  }
+
+  body {
+    background: var(--bg); font-family: 'Nunito', sans-serif;
+    color: var(--text); height: 100vh;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* --- HEADER --- */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 20px; background: var(--card);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 10;
+  }
+  .btn-back {
+    font-size: 1.2rem; font-weight: 800; color: var(--text-muted);
+    background: #f0f4f8; padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer;
+  }
+  .btn-back:active { transform: scale(0.95); }
+  .progress-bar {
+    flex: 1; height: 10px; background: #E0E0E0; border-radius: 10px;
+    margin: 0 20px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--primary); width: 0%;
+    transition: width 0.4s ease; border-radius: 10px;
+  }
+  .level-txt { font-size: 1rem; font-weight: 900; color: var(--primary-dark); }
+
+  /* --- STAGE --- */
+  .stage-wrapper {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    padding: 20px; position: relative;
+  }
+  
+  .instruction {
+    font-size: 1.1rem; font-weight: 800; color: var(--text-muted);
+    margin-bottom: 10px; text-align: center;
+  }
+
+  /* Board vẽ nối điểm */
+  .board {
+    background: var(--card); border-radius: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    width: 100%; max-width: 500px; aspect-ratio: 1;
+    position: relative; overflow: hidden;
+    /* Rất quan trọng để ngón tay kéo không làm cuộn trang trên iPad */
+    touch-action: none; 
+  }
+
+  /* Lớp vẽ nét nối */
+  .lines-layer {
+    position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;
+  }
+  .lines-layer line {
+    stroke: var(--line); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 1000; stroke-dashoffset: 1000;
+    animation: drawLine 0.4s ease forwards;
+  }
+  @keyframes drawLine { to { stroke-dashoffset: 0; } }
+
+  /* Các điểm chấm */
+  .dot {
+    position: absolute; transform: translate(-50%, -50%);
+    width: 34px; height: 34px; background: var(--dot); border-radius: 50%;
+    border: 3px solid #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; font-weight: 900; color: #fff; z-index: 2;
+    transition: transform 0.1s, background 0.2s;
+  }
+  .dot.active {
+    background: var(--line); transform: translate(-50%, -50%) scale(1.3);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.6); z-index: 3;
+  }
+  .dot.completed { background: var(--line); }
+
+  /* Hiển thị hình ảnh hoàn thành */
+  .completed-art {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.9); z-index: 5;
+    opacity: 0; pointer-events: none; transition: opacity 0.5s;
+  }
+  .completed-art.show { opacity: 1; pointer-events: auto; }
+  .art-emoji { font-size: 8rem; animation: bounce 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .art-name { font-size: 2rem; font-weight: 900; color: var(--primary-dark); margin-top: 10px; }
+  
+  .btn-next {
+    margin-top: 20px; font-size: 1.2rem; font-weight: 900; background: var(--primary); color: white;
+    padding: 12px 30px; border-radius: 30px; border: none; cursor: pointer;
+    box-shadow: 0 6px 0 var(--primary-dark);
+  }
+  .btn-next:active { transform: translateY(6px); box-shadow: 0 0 0 var(--primary-dark); }
+
+  /* --- VICTORY SCREEN --- */
+  .victory {
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    position: absolute; inset: 0; background: rgba(227, 242, 253, 0.95); z-index: 100;
+  }
+  .victory h1 { font-size: 2.5rem; color: var(--primary-dark); margin-bottom: 10px; text-align: center; }
+  .victory p { font-size: 1.1rem; color: var(--text-muted); font-weight: 700; margin-bottom: 30px; }
+
+  /* Animations */
+  @keyframes bounce { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+  
+  @media(max-width: 400px) {
+    .dot { width: 28px; height: 28px; font-size: 0.8rem; }
+    .art-emoji { font-size: 6rem; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <button class="btn-back" onclick="goHome()">◂ Quay lại</button>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+    <div class="level-txt" id="level-txt">Hình 1/3</div>
+  </div>
+
+  <div class="stage-wrapper">
+    <div class="instruction">Bé hãy kéo tay từ số 1 nhé! 👆</div>
+    
+    <div class="board" id="board">
+      <svg class="lines-layer" id="lines-svg"></svg>
+      <div id="dots-container"></div>
+      
+      <div class="completed-art" id="completed-art">
+        <div class="art-emoji" id="art-emoji">⭐</div>
+        <div class="art-name" id="art-name">Ngôi Sao</div>
+        <button class="btn-next" onclick="nextLevel()">Hình tiếp theo →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="victory" id="victory">
+    <div style="font-size: 5rem; animation: bounce 1s infinite;">🎨</div>
+    <h1>Trạm 2: Hoàn Thành!</h1>
+    <p>Bé nối điểm thuộc số siêu quá!</p>
+    <button class="btn-next" onclick="completeStation()">Mở khóa trạm tiếp theo 🚀</button>
+  </div>
+
+<script>
+  // Dữ liệu các hình ảnh (Toạ độ tính theo % của board)
+  const levels = [
+    {
+      name: "Ngôi Sao", emoji: "⭐",
+      dots: [
+        { id: 1, x: 50, y: 10 }, { id: 2, x: 62, y: 38 }, { id: 3, x: 92, y: 38 },
+        { id: 4, x: 68, y: 56 }, { id: 5, x: 78, y: 85 }, { id: 6, x: 50, y: 68 },
+        { id: 7, x: 22, y: 85 }, { id: 8, x: 32, y: 56 }, { id: 9, x: 8,  y: 38 },
+        { id: 10, x: 38, y: 38 }
+      ]
+    },
+    {
+      name: "Tên Lửa", emoji: "🚀",
+      dots: [
+        { id: 1, x: 50, y: 15 }, { id: 2, x: 65, y: 35 }, { id: 3, x: 65, y: 65 },
+        { id: 4, x: 80, y: 85 }, { id: 5, x: 60, y: 85 }, { id: 6, x: 50, y: 75 },
+        { id: 7, x: 40, y: 85 }, { id: 8, x: 20, y: 85 }, { id: 9, x: 35, y: 65 },
+        { id: 10, x: 35, y: 35 }
+      ]
+    },
+    {
+      name: "Khủng Long T-Rex", emoji: "🦖",
+      dots: [
+        { id: 1, x: 60, y: 20 }, { id: 2, x: 85, y: 20 }, { id: 3, x: 85, y: 35 },
+        { id: 4, x: 70, y: 35 }, { id: 5, x: 75, y: 55 }, { id: 6, x: 65, y: 55 },
+        { id: 7, x: 65, y: 85 }, { id: 8, x: 50, y: 85 }, { id: 9, x: 45, y: 65 },
+        { id: 10, x: 15, y: 75 }, { id: 11, x: 35, y: 50 }, { id: 12, x: 50, y: 30 }
+      ]
+    }
+  ];
+
+  let currentLevelIdx = 0;
+  let expectedDot = 1;
+  let totalDots = 0;
+  let dotElements = [];
+  let boardRect;
+
+  const board = document.getElementById('board');
+  const dotsContainer = document.getElementById('dots-container');
+  const linesSvg = document.getElementById('lines-svg');
+  const completedArt = document.getElementById('completed-art');
+
+  function initGame() {
+    currentLevelIdx = 0;
+    document.getElementById('victory').style.display = 'none';
+    loadLevel();
+  }
+
+  function loadLevel() {
+    expectedDot = 1;
+    completedArt.classList.remove('show');
+    dotsContainer.innerHTML = '';
+    linesSvg.innerHTML = '';
+    dotElements = [];
+    
+    document.getElementById('prog-fill').style.width = ((currentLevelIdx / levels.length) * 100) + '%';
+    document.getElementById('level-txt').textContent = `Hình ${currentLevelIdx + 1}/${levels.length}`;
+
+    const levelData = levels[currentLevelIdx];
+    totalDots = levelData.dots.length;
+
+    // Render Dots
+    levelData.dots.forEach(d => {
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      if (d.id === 1) dot.classList.add('active'); // Nổi bật số 1 đầu tiên
+      
+      dot.textContent = d.id;
+      dot.style.left = `${d.x}%`;
+      dot.style.top = `${d.y}%`;
+      dot.dataset.id = d.id;
+      
+      // Tap thẳng vào điểm
+      dot.onclick = () => handleDotTouch(d.id);
+      
+      dotsContainer.appendChild(dot);
+      dotElements.push({ id: d.id, element: dot, x: d.x, y: d.y });
+    });
+
+    setTimeout(() => { boardRect = board.getBoundingClientRect(); }, 100);
+  }
+
+  // Xử lý logic khi ngón tay chạm/vuốt qua một điểm
+  function handleDotTouch(id) {
+    if (id === expectedDot) {
+      const current = dotElements.find(d => d.id === id);
+      current.element.classList.remove('active');
+      current.element.classList.add('completed');
+
+      if (expectedDot > 1) {
+        // Vẽ đường nối từ điểm trước tới điểm hiện tại
+        const prev = dotElements.find(d => d.id === (id - 1));
+        drawLine(prev.x, prev.y, current.x, current.y);
+      }
+
+      expectedDot++;
+
+      if (expectedDot <= totalDots) {
+        // Làm nổi bật điểm tiếp theo
+        dotElements.find(d => d.id === expectedDot).element.classList.add('active');
+      } else {
+        // Hoàn thành nối để tạo hình khép kín (Nối điểm cuối về điểm đầu)
+        const first = dotElements.find(d => d.id === 1);
+        drawLine(current.x, current.y, first.x, first.y);
+        
+        setTimeout(() => showCompletedArt(), 500);
+      }
+    }
+  }
+
+  // Hàm vẽ line trên SVG
+  function drawLine(x1, y1, x2, y2) {
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", `${x1}%`);
+    line.setAttribute("y1", `${y1}%`);
+    line.setAttribute("x2", `${x2}%`);
+    line.setAttribute("y2", `${y2}%`);
+    linesSvg.appendChild(line);
+  }
+
+  function showCompletedArt() {
+    const levelData = levels[currentLevelIdx];
+    document.getElementById('art-emoji').textContent = levelData.emoji;
+    document.getElementById('art-name').textContent = levelData.name;
+    completedArt.classList.add('show');
+    createConfetti();
+  }
+
+  function nextLevel() {
+    currentLevelIdx++;
+    if (currentLevelIdx < levels.length) {
+      loadLevel();
+    } else {
+      showVictory();
+    }
+  }
+
+  // Tối ưu thao tác vuốt (Drag) trên iPad
+  board.addEventListener('touchmove', (e) => {
+    e.preventDefault(); // Ngăn cuộn trang
+    const touch = e.touches[0];
+    // Tìm phần tử nằm dưới ngón tay
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    
+    if (target && target.classList.contains('dot')) {
+      const id = parseInt(target.dataset.id);
+      handleDotTouch(id);
+    }
+  }, { passive: false });
+
+  // Dành cho thao tác chuột (PC/Mac)
+  let isMouseDown = false;
+  board.addEventListener('mousedown', () => isMouseDown = true);
+  window.addEventListener('mouseup', () => isMouseDown = false);
+  board.addEventListener('mousemove', (e) => {
+    if (!isMouseDown) return;
+    const target = document.elementFromPoint(e.clientX, e.clientY);
+    if (target && target.classList.contains('dot')) {
+      const id = parseInt(target.dataset.id);
+      handleDotTouch(id);
+    }
+  });
+
+  function createConfetti() {
+    const colors = ['#4CAF50', '#FFC107', '#2196F3', '#FF5252', '#9C27B0'];
+    for(let i=0; i<30; i++){
+      const cp = document.createElement('div');
+      cp.style.cssText = `
+        position: fixed; width: 10px; height: 10px; 
+        background: ${colors[Math.floor(Math.random()*colors.length)]};
+        left: ${50 + (Math.random() - 0.5) * 40}%; top: 40%;
+        border-radius: 3px; pointer-events: none; z-index: 100;
+        transition: all 1s cubic-bezier(0.1, 0.8, 0.3, 1);
+      `;
+      document.body.appendChild(cp);
+      
+      setTimeout(() => {
+        cp.style.transform = `translate(${(Math.random() - 0.5) * 400}px, ${(Math.random() - 0.5) * 400}px) rotate(${Math.random() * 360}deg)`;
+        cp.style.opacity = '0';
+      }, 10);
+      
+      setTimeout(() => cp.remove(), 1000);
+    }
+  }
+
+  function showVictory() {
+    document.getElementById('prog-fill').style.width = '100%';
+    document.getElementById('victory').style.display = 'flex';
+    // Đánh dấu hoàn thành Trạm 2
+    localStorage.setItem('kumon_level2_done', 'true');
+  }
+
+  function completeStation() {
+    window.location.href = 'index.html';
+  }
+
+  function goHome() {
+    window.location.href = 'index.html';
+  }
+
+  // Khởi động
+  initGame();
+
+</script>
+</body>
+</html>
